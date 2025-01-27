@@ -1,0 +1,28 @@
+services:
+  app:
+    image: food_image
+    build:
+      context: .
+    env_file: 
+    - .env
+    container_name: food_app
+    command: ["docker/app.sh"]
+    ports:
+      - 8000:8000
+
+  db:
+    image: postgres:15
+    container_name: food_db
+    env_file:
+      - .env
+    environment:
+      POSTGRES_DB: food_app
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: 1234
+    volumes:
+      - postgresdata:/var/lib/postgresql/data
+    ports:
+      - 5432:5432
+
+volumes:
+  postgresdata:
