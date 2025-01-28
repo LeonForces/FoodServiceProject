@@ -5,32 +5,35 @@ from pydantic import Field
 class Settings(BaseSettings):
 
     model_config = SettingsConfigDict(env_file="../.env")
-    DB_HOST: str = Field(
+    POSTGRES_HOST: str = Field(
         "localhost",
-        env="DB_HOST"
+        env="POSTGRES_HOST"
     )
-    DB_PORT: str = Field(
+    POSTGRES_PORT: str = Field(
         "5432",
-        env="DB_PORT"
+        env="POSTGRES_PORT"
     )
-    DB_NAME: str = Field(
-        "test",
-        env="DB_NAME"
+    POSTGRES_DB: str = Field(
+        env="POSTGRES_DB"
     )
-    DB_USER: str = Field(
+    POSTGRES_USER: str = Field(
         "postgres",
-        env="DB_USER"
+        env="POSTGRES_USER"
     )
-    DB_PASSWORD: str = Field(
+    POSTGRES_PASSWORD: str = Field(
         "1234",
-        env="DB_PASSWORD"
+        env="POSTGRES_PASSWORD"
+    )
+    echo: bool = Field(
+        True,
+        env="ECHO"
     )
 
     @property
     def db_url(self):
-        return "postgres+asyncpg://" + \
-            f"{self.DB_USER}:{self.DB_PASSWORD}@" + \
-            f"{self.DB_HOST}:{self.DB_PORT}/{self.DB_NAME}"
+        return "postgresql+asyncpg://" + \
+            f"{self.POSTGRES_USER}:{self.POSTGRES_PASSWORD}@" + \
+            f"{self.POSTGRES_HOST}:{self.POSTGRES_PORT}/{self.POSTGRES_DB}"
 
 
 settings = Settings()

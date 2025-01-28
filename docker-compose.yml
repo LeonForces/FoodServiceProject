@@ -15,10 +15,6 @@ services:
     container_name: food_db
     env_file:
       - .env
-    environment:
-      POSTGRES_DB: food_app
-      POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: 1234
     volumes:
       - postgresdata:/var/lib/postgresql/data
     ports:
