@@ -29,6 +29,21 @@ class Settings(BaseSettings):
         env="ECHO"
     )
 
+    SECRET_KEY: str = Field(
+        env="SECRET_KEY"
+    )
+    ALGORITHM: str = Field(
+        "HS256",
+        env="ALGORITHM"
+    )
+    ACCESS_TOKEN_EXPIRE_MINUTES: int = Field(
+        15,
+        env="ACCESS_TOKEN_EXPIRE_MINUTES"
+    )
+    COOKIE_MAX_AGE: int = Field(
+        env="COOKIE_MAX_AGE"
+    )
+
     @property
     def db_url(self):
         return "postgresql+asyncpg://" + \

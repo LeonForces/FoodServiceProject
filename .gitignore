@@ -2,4 +2,5 @@
 .env
 .venvnb
 dataset.ipynb
-src/__pycache__
+*/__pycache__
+src/*/__pycache__
