@@ -38,11 +38,12 @@ class AuthServiceABC(ABC):
 class AuthService(AuthServiceABC):
 
     pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
-    oauth2_scheme = OAuth2PasswordBearer(tokenUrl="token")
+    oauth2_scheme = OAuth2PasswordBearer(tokenUrl="auth/token")
 
-    def create_access_token(
+    @staticmethod
+    async def create_access_token(
         data: dict,
-        expires_delta: timedelta | None = timedelta(minutes=15)
+        expires_delta: timedelta
     ):
         to_encode = data.copy()
         expire = datetime.now(timezone.utc) + expires_delta
@@ -54,9 +55,10 @@ class AuthService(AuthServiceABC):
         )
         return encoded_jwt
 
+    @staticmethod
     async def get_current_user(
-            self,
-            token: Annotated[str, Depends(oauth2_scheme)]):
+        token: Annotated[str, Depends(oauth2_scheme)]
+    ):
         try:
             payload = jwt.decode(
                 token,
@@ -71,15 +73,18 @@ class AuthService(AuthServiceABC):
             raise CredentialsException
         return user
 
-    def get_password_hash(self, password: str):
-        return self.pwd_context.hash(password)
+    @classmethod
+    async def get_password_hash(cls, password: str):
+        return cls.pwd_context.hash(password)
 
-    def verify_password(self, plain_password: str, hash_password: str):
-        return self.pwd_context.verify(plain_password, hash_password)
+    @classmethod
+    def verify_password(cls, plain_password: str, hash_password: str):
+        return cls.pwd_context.verify(plain_password, hash_password)
 
-    async def authenticate_user(self, username: str, password: str):
+    @classmethod
+    async def authenticate_user(cls, username: str, password: str):
         user = await UserDAO.find_one_or_none(username=username)
-        if not user or not self.verify_password(
+        if not user or not cls.verify_password(
             plain_password=password,
             hash_password=user.hash_password
         ):

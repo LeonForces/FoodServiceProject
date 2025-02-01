@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Query, Depends, Response
+from fastapi import APIRouter, Query, Depends
 from typing import Annotated
 from fastapi.security import OAuth2PasswordRequestForm
 from datetime import timedelta
@@ -20,16 +20,15 @@ async def register(
     exist_user = await UserDAO.find_one_or_none(username=username)
     if exist_user is not None:
         raise UserAlreadyExistsException
-    hash_password = AuthService.get_password_hash(password=password)
+    hash_password = await AuthService.get_password_hash(password=password)
     await UserDAO.add(username=username, hash_password=hash_password)
     return {"msg": "Account has been created"}
 
 
-@router.post("/login")
-async def login(
-    form_data: Annotated[OAuth2PasswordRequestForm, Depends()],
-    response: Response
-) -> SToken:
+@router.post("/token", response_model=SToken)
+async def login_for_access_token(
+    form_data: Annotated[OAuth2PasswordRequestForm, Depends()]
+):
     user = await AuthService.authenticate_user(
         username=form_data.username,
         password=form_data.password
@@ -39,16 +38,13 @@ async def login(
     access_token_expire = timedelta(
         minutes=settings.ACCESS_TOKEN_EXPIRE_MINUTES
     )
-    access_token = AuthService.create_access_token(
+    access_token = await AuthService.create_access_token(
         data={"sub": user.username},
         expires_delta=access_token_expire
     )
-    response.set_cookie(
-        key="access_token",
-        value=access_token,
-        httponly=True,
-        max_age=settings.COOKIE_MAX_AGE,
-        secure=True,  # Для HTTPS
-        samesite="lax"
-    )
     return SToken(access_token=access_token, token_type="bearer")
+
+
+@router.get("/protected")
+async def protected_route(user: dict = Depends(AuthService.get_current_user)):
+    return {"message": "Вы вошли!", "username": user.username}
